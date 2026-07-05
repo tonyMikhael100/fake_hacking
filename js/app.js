@@ -99,11 +99,23 @@ class SnakeGame {
     this.ctx = this.canvas.getContext('2d');
     this.scoreEl = document.getElementById(scoreId);
     this.grid = 15;
-    this.tileCount = Math.floor(this.canvas.width / this.grid);
+    this.resizeCanvas();
     this.winScore = 10;
     this.reset();
     this.running = false;
     this.loop = null;
+  }
+
+  resizeCanvas() {
+    const rect = this.canvas.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      this.canvas.width = Math.floor(rect.width);
+      this.canvas.height = Math.floor(rect.height);
+    } else {
+      this.canvas.width = 400;
+      this.canvas.height = 260;
+    }
+    this.tileCount = Math.floor(this.canvas.width / this.grid);
   }
 
   reset() {
