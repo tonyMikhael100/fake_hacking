@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎉 You Won a Prize!</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <canvas id="particles"></canvas>
+
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+
+  <section id="landing" class="phase">
+    <div class="landing-container">
+      <div class="landing-badge">🎉 CONGRATULATIONS!</div>
+      <h1 class="landing-title">You Won a Prize!</h1>
+      <p class="landing-subtitle">Click the button below to claim your exclusive reward.</p>
+      <button id="start-btn" class="btn-primary">
+        <span>Claim Your Reward</span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <section id="simulation" class="phase hidden">
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <div class="terminal-title">bash — secure-session</div>
+      </div>
+      <div class="terminal-body" id="terminal-body">
+        <div class="terminal-prompt">$ <span class="cursor blink">_</span></div>
+      </div>
+    </div>
+
+    <div id="progress-section" class="hidden">
+      <div class="progress-card">
+        <div class="progress-label" id="progress-label">Initializing...</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-percent" id="progress-percent">0%</div>
+      </div>
+    </div>
+  </section>
+
+  <div id="warning-overlay" class="hidden">
+    <div class="warning-border"></div>
+    <div class="warning-content" id="warning-content">
+      <div class="warning-icon pulse-slow" id="warning-icon">&#9888;</div>
+      <h1 class="warning-title glitch-text" data-text="SECURITY BREACH DETECTED" id="warning-title-main">SECURITY BREACH DETECTED</h1>
+      <p class="warning-sub" id="warning-sub">Unauthorized access detected on your system</p>
+      <div class="warning-counter" id="warning-counter">
+        <span class="counter-label">Encryption in progress</span>
+        <div class="counter-value" id="countdown">10</div>
+      </div>
+      <div class="warning-progress" id="warning-progress-bar">
+        <div class="warning-progress-fill" id="warning-progress-fill"></div>
+      </div>
+      <div id="warning-final" class="hidden">
+        <div class="final-line" id="final-line-1"></div>
+        <div class="final-line" id="final-line-2"></div>
+        <div class="final-line" id="final-line-3"></div>
+        <div class="final-line" id="final-line-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="glitch-bars" class="hidden"></div>
+
+  <nav id="dev-nav" class="hidden">
+    <span class="dev-label">DEV</span>
+    <button id="nav-landing" class="dev-btn">Landing</button>
+    <button id="nav-boot" class="dev-btn">Boot</button>
+    <button id="nav-info" class="dev-btn">Info</button>
+    <button id="nav-hacking" class="dev-btn">Hacking</button>
+    <button id="nav-escalation" class="dev-btn">Hacked</button>
+  </nav>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
