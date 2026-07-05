@@ -236,6 +236,24 @@ class Simulation {
 
   // ========== TERMINAL HELPERS ==========
 
+  rand(a, b) {
+    return Math.floor(Math.random() * (b - a + 1)) + a;
+  }
+
+  fakeIP() {
+    return `${this.rand(10, 223)}.${this.rand(0, 255)}.${this.rand(0, 255)}.${this.rand(1, 254)}`;
+  }
+
+  fakePort() {
+    return this.rand(1024, 65535);
+  }
+
+  fakeHex(len) {
+    let s = '';
+    for (let i = 0; i < len; i++) s += '0123456789ABCDEF'[this.rand(0, 15)];
+    return s;
+  }
+
   async typeLine(text, className = '') {
     const line = document.createElement('div');
     line.className = `terminal-line ${className}`;
@@ -244,7 +262,7 @@ class Simulation {
       if (this.stopped) return;
       line.textContent += char;
       this.terminal.scrollTop = this.terminal.scrollHeight;
-      await this.sleep(12 + Math.random() * 16);
+      await this.sleep(3 + Math.random() * 6);
     }
     this.terminal.scrollTop = this.terminal.scrollHeight;
     return line;
@@ -256,12 +274,12 @@ class Simulation {
     line.textContent = text;
     this.terminal.appendChild(line);
     this.terminal.scrollTop = this.terminal.scrollHeight;
-    await this.sleep(300);
+    await this.sleep(200);
     return line;
   }
 
   async terminalBlank() {
-    await this.sleep(600);
+    await this.sleep(400);
     const blank = document.createElement('div');
     blank.className = 'terminal-line dim';
     blank.textContent = '\u00A0';
@@ -341,35 +359,50 @@ class Simulation {
   // ========== PHASES ==========
 
   async bootPhase() {
-    await this.sleep(400);
+    await this.sleep(200);
     await this.typeLine('Initializing secure connection...', 'dim');
-    await this.sleep(1400);
+    await this.sleep(300);
+    await this.typeLine('  [ OK ] TLS handshake complete', 'dim');
     await this.typeLine('Establishing encrypted tunnel...', 'dim');
-    await this.sleep(1200);
-    await this.typeLine('Bypassing network protocols...', 'dim');
-    await this.sleep(1500);
+    await this.sleep(250);
+    await this.typeLine('  [ OK ] AES-256 tunnel active', 'dim');
+    await this.typeLine('Scanning open ports...', 'dim');
+    await this.sleep(200);
+    await this.typeLine(`  [ OK ] Port ${this.fakePort()} open`, 'dim');
+    await this.typeLine(`  [ OK ] Port ${this.fakePort()} open`, 'dim');
+    await this.typeLine(`  [ OK ] Port ${this.fakePort()} open`, 'dim');
+    await this.sleep(200);
+    await this.typeLine('Bypassing network firewall...', 'dim');
+    await this.sleep(300);
+    await this.typeLine('  [ OK] Firewall rules bypassed', 'dim');
     await this.typeLine('Spoofing MAC address...', 'dim');
-    await this.sleep(1000);
+    await this.sleep(200);
+    await this.typeLine(`  [ OK ] MAC: ${this.fakeHex(2)}:${this.fakeHex(2)}:${this.fakeHex(2)}:${this.fakeHex(2)}:${this.fakeHex(2)}:${this.fakeHex(2)}`, 'dim');
     await this.typeLine('Authenticating session key...', 'dim');
-    await this.sleep(1200);
+    await this.sleep(250);
+    await this.typeLine(`  [ OK ] Session: ${this.fakeHex(32)}`, 'dim');
     await this.typeLine('', 'dim');
     await this.typeLine('[ OK ] Connection established.', 'green');
-    await this.sleep(800);
+    await this.sleep(200);
     await this.typeLine('', 'dim');
     await this.typeLine('ACCESS GRANTED', 'bold');
-    await this.sleep(600);
-    await this.typeLine('Connecting to remote device...', 'dim');
-    await this.sleep(1800);
+    await this.sleep(150);
+    await this.typeLine(`[>] Routing through ${this.fakeIP()}:${this.fakePort()}...`, 'dim');
+    await this.sleep(300);
     await this.typeLine('[ OK ] Target device found.', 'green');
-    await this.sleep(400);
+    await this.sleep(150);
+    await this.typeLine(`[>] Resolving host ${this.fakeIP()}...`, 'dim');
+    await this.sleep(200);
+    await this.typeLine('[ OK] Remote shell acquired.', 'green');
+    await this.sleep(300);
   }
 
   async infoPhase() {
     await this.typeLine('', 'dim');
-    await this.typeLine('================================', 'dim');
+    await this.typeLine('========================================', 'dim');
     await this.typeLine('  DEVICE INFORMATION ACQUIRED', 'cyan');
-    await this.typeLine('================================', 'dim');
-    await this.sleep(600);
+    await this.typeLine('========================================', 'dim');
+    await this.sleep(200);
 
     const info = this.getBrowserInfo();
 
@@ -386,67 +419,74 @@ class Simulation {
     for (const item of items) {
       if (this.stopped) return;
       await this.typeLine(`  ${item.label.padEnd(20)} : ${item.value}`);
-      await this.sleep(500 + Math.random() * 300);
+      await this.sleep(this.rand(80, 150));
     }
 
-    await this.typeLine('================================', 'dim');
-    await this.sleep(500);
+    await this.typeLine('========================================', 'dim');
+    await this.sleep(150);
     await this.typeLine('', 'dim');
     await this.typeLine('[!] Target fully identified.', 'cyan');
-    await this.sleep(400);
+    await this.sleep(100);
     await this.typeLine('[!] Device is now accessible.', 'cyan');
-    await this.sleep(800);
+    await this.sleep(200);
   }
 
   async hackingPhase() {
     await this.typeLine('', 'dim');
-    await this.typeLine('================================', 'red');
+    await this.typeLine('========================================', 'red');
     await this.typeLine('  INITIALIZING DATA EXTRACTION', 'red');
-    await this.typeLine('================================', 'red');
-    await this.sleep(600);
+    await this.typeLine('========================================', 'red');
+    await this.sleep(200);
 
     const steps = [
-      { label: 'Scanning file system...', duration: 3200 },
-      { label: 'Indexing documents...', duration: 2800 },
-      { label: 'Extracting saved credentials...', duration: 3500 },
-      { label: 'Accessing browser history...', duration: 2600 },
-      { label: 'Analyzing network traffic...', duration: 3000 },
-      { label: 'Collecting system logs...', duration: 2400 },
-      { label: 'Encrypting target files...', duration: 3800 },
+      { label: 'Scanning file system...', duration: 1000 },
+      { label: 'Indexing documents...', duration: 800 },
+      { label: 'Extracting saved credentials...', duration: 1200 },
+      { label: 'Accessing browser history...', duration: 700 },
+      { label: 'Downloading contact list...', duration: 900 },
+      { label: 'Analyzing network traffic...', duration: 1000 },
+      { label: 'Collecting system logs...', duration: 700 },
+      { label: 'Scanning email cache...', duration: 900 },
+      { label: 'Extracting location data...', duration: 800 },
+      { label: 'Encrypting target files...', duration: 1400 },
     ];
 
     for (const step of steps) {
       if (this.stopped) return;
       await this.showProgress(step.label, step.duration);
-      await this.sleep(200);
+      await this.sleep(80);
       this.progressSection.classList.add('hidden');
       await this.typeFastLine(`  [ OK ] ${step.label.split('...')[0]} complete.`, 'dim');
-      await this.sleep(300);
+      await this.sleep(this.rand(50, 100));
     }
 
     await this.typeLine('', 'dim');
-    await this.typeLine('[!] All operations completed successfully.', 'red');
-    await this.sleep(500);
+    await this.typeLine('========================================', 'red');
+    await this.typeLine('  ALL DATA EXTRACTED SUCCESSFULLY', 'red');
+    await this.typeLine('========================================', 'red');
+    await this.sleep(200);
+    await this.typeLine('[!] Encrypting extracted data...', 'red');
+    await this.sleep(150);
     await this.typeLine('[!] Encryption protocol initiated.', 'red');
-    await this.sleep(400);
+    await this.sleep(300);
   }
 
   async escalationPhase() {
     this.clearTerminal();
-    await this.sleep(300);
+    await this.sleep(150);
 
     this.warningOverlay.classList.remove('hidden');
     this.glitchBars.classList.remove('hidden');
     this.glitchBars.classList.add('active');
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       if (this.stopped) return;
       document.body.classList.add('shake');
       this.warningTitle.classList.add('active');
-      await this.sleep(100);
+      await this.sleep(60);
       document.body.classList.remove('shake');
       this.warningTitle.classList.remove('active');
-      await this.sleep(200);
+      await this.sleep(100);
     }
 
     let count = 10;
@@ -454,7 +494,7 @@ class Simulation {
     this.warningProgressFill.style.width = '0%';
 
     const startTime = performance.now();
-    const totalDuration = 10000;
+    const totalDuration = 5000;
 
     while (count > 0) {
       if (this.stopped) return;
@@ -462,7 +502,7 @@ class Simulation {
 
       if (count > 0 && count % 3 === 0) {
         document.body.classList.add('shake');
-        await this.sleep(150);
+        await this.sleep(80);
         document.body.classList.remove('shake');
       }
 
@@ -478,7 +518,7 @@ class Simulation {
 
       if (count % 2 === 0) {
         this.warningTitle.classList.add('active');
-        await this.sleep(100);
+        await this.sleep(60);
         this.warningTitle.classList.remove('active');
       }
 
@@ -486,14 +526,14 @@ class Simulation {
       const pct = Math.min((elapsed / totalDuration) * 100, 100);
       this.warningProgressFill.style.width = `${pct}%`;
 
-      await this.sleep(1000);
+      await this.sleep(500);
       count--;
     }
 
     this.countdown.textContent = '0';
     this.warningProgressFill.style.width = '100%';
 
-    await this.sleep(500);
+    await this.sleep(200);
 
     this.finalizeHack();
   }
@@ -503,7 +543,7 @@ class Simulation {
     for (const char of text) {
       if (this.stopped) return;
       element.textContent += char;
-      await this.sleep(30 + Math.random() * 20);
+      await this.sleep(15 + Math.random() * 10);
     }
   }
 
@@ -529,7 +569,7 @@ class Simulation {
       if (el) {
         setTimeout(() => {
           if (!this.stopped) this.typeLineInto(el, text);
-        }, (i + 1) * 1200);
+        }, (i + 1) * 600);
       }
     });
   }
