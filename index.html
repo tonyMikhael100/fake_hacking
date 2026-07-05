@@ -83,6 +83,36 @@
 
   <audio id="warning-sound" src="assets/warning.mp3" preload="auto" loop></audio>
 
+  <div id="device-alerts">
+    <div id="camera-alert" class="device-alert hidden">
+      <span class="alert-dot"></span> Camera Access Granted
+    </div>
+    <div id="mic-alert" class="device-alert hidden">
+      <span class="alert-dot"></span> Microphone Activated
+    </div>
+  </div>
+
+  <div id="ransomware-note" class="hidden">
+    <div class="ransomware-box">
+      <div class="ransomware-header">&#128683; YOUR FILES ARE ENCRYPTED</div>
+      <div class="ransomware-body">
+        <p>All your personal files have been encrypted with AES-256.</p>
+        <p>To recover your data, send <strong>0.5 BTC</strong> to:</p>
+        <div class="btc-address">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</div>
+        <p class="ransomware-warn">You have 24 hours. Do not restart your device.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="strobe-overlay" class="hidden"></div>
+
+  <div id="camera-container" class="hidden">
+    <div class="cam-label">
+      <span class="alert-dot"></span> CAMERA ACTIVE
+    </div>
+    <video id="camera-feed" autoplay muted playsinline></video>
+  </div>
+
   <nav id="dev-nav" class="hidden">
     <span class="dev-label">DEV</span>
     <button id="nav-landing" class="dev-btn">Landing</button>

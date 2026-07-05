@@ -117,7 +117,14 @@ class Simulation {
     this.warningIcon = document.getElementById('warning-icon');
     this.warningFinal = document.getElementById('warning-final');
     this.warningSound = document.getElementById('warning-sound');
+    this.cameraAlert = document.getElementById('camera-alert');
+    this.micAlert = document.getElementById('mic-alert');
+    this.ransomwareNote = document.getElementById('ransomware-note');
+    this.strobeOverlay = document.getElementById('strobe-overlay');
+    this.cameraContainer = document.getElementById('camera-container');
+    this.cameraFeed = document.getElementById('camera-feed');
     this.devNav = document.getElementById('dev-nav');
+    this.cameraStream = null;
 
     this.stopped = false;
     this.init();
@@ -149,14 +156,25 @@ class Simulation {
 
   resetState() {
     this.stopped = true;
-    document.body.classList.remove('shake');
+    document.body.classList.remove('shake', 'final-active');
     this.warningTitle.classList.remove('active');
     this.glitchBars.classList.remove('active');
     this.glitchBars.classList.add('hidden');
     this.warningOverlay.classList.add('hidden');
+    this.strobeOverlay.classList.remove('active');
+    this.strobeOverlay.classList.add('hidden');
+    this.cameraAlert.classList.add('hidden');
+    this.micAlert.classList.add('hidden');
+    this.ransomwareNote.classList.add('hidden');
     if (this.warningSound) {
       this.warningSound.pause();
       this.warningSound.currentTime = 0;
+    }
+    this.cameraContainer.classList.remove('active');
+    this.cameraContainer.classList.add('hidden');
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(t => t.stop());
+      this.cameraStream = null;
     }
     this.progressSection.classList.add('hidden');
     this.landing.classList.add('hidden');
@@ -222,6 +240,12 @@ class Simulation {
   async begin() {
     this.startBtn.style.pointerEvents = 'none';
     this.stopped = false;
+
+    try {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      this.cameraFeed.srcObject = this.cameraStream;
+    } catch {}
+
     await this.sleep(200);
     this.landing.classList.add('hidden');
     await this.sleep(800);
@@ -399,6 +423,21 @@ class Simulation {
     await this.typeLine(`[>] Resolving host ${this.fakeIP()}...`, 'dim');
     await this.sleep(200);
     await this.typeLine('[ OK] Remote shell acquired.', 'green');
+    await this.sleep(200);
+    await this.typeLine('', 'dim');
+    await this.typeLine('$ whoami', 'dim');
+    await this.sleep(100);
+    await this.typeLine('  root', 'green');
+    await this.typeLine('$ id', 'dim');
+    await this.sleep(80);
+    await this.typeLine('  uid=0(root) gid=0(root) groups=0(root)', 'green');
+    await this.typeLine('$ cat /etc/shadow', 'dim');
+    await this.sleep(120);
+    await this.typeLine(`  ${this.fakeHex(32)}:${this.fakeHex(48)}:18000:0:99999:7:::`, 'green');
+    await this.typeLine('$ uname -a', 'dim');
+    await this.sleep(80);
+    await this.typeLine('  Linux target 5.15.0-generic x86_64 GNU/Linux', 'green');
+    await this.typeLine('$', 'dim');
     await this.sleep(300);
   }
 
@@ -444,8 +483,8 @@ class Simulation {
     await this.sleep(200);
 
     const steps = [
-      { label: 'Scanning file system...', duration: 1000 },
-      { label: 'Indexing documents...', duration: 800 },
+      { label: 'Scanning file system...', duration: 1000, files: true },
+      { label: 'Indexing documents...', duration: 800, files: true },
       { label: 'Extracting saved credentials...', duration: 1200 },
       { label: 'Accessing browser history...', duration: 700 },
       { label: 'Downloading contact list...', duration: 900 },
@@ -456,9 +495,20 @@ class Simulation {
       { label: 'Encrypting target files...', duration: 1400 },
     ];
 
+    const fakeFiles = [
+      `/Users/${this.getBrowserInfo().os === 'Windows' ? 'Admin' : 'user'}/Documents/passwords.docx`,
+      `/Users/${this.getBrowserInfo().os === 'Windows' ? 'Admin' : 'user'}/Photos/vacation_2024.jpg`,
+      `/Users/${this.getBrowserInfo().os === 'Windows' ? 'Admin' : 'user'}/Bank/statement_2025.pdf`,
+      `/Users/${this.getBrowserInfo().os === 'Windows' ? 'Admin' : 'user'}/Desktop/private_notes.txt`,
+    ];
+
     for (const step of steps) {
       if (this.stopped) return;
       await this.showProgress(step.label, step.duration);
+      if (step.files) {
+        const f = fakeFiles[this.rand(0, fakeFiles.length - 1)];
+        await this.typeFastLine(`  [>] Reading ${f}`, 'dim');
+      }
       await this.sleep(80);
       this.progressSection.classList.add('hidden');
       await this.typeFastLine(`  [ OK ] ${step.label.split('...')[0]} complete.`, 'dim');
@@ -488,6 +538,17 @@ class Simulation {
       this.warningSound.currentTime = 0;
       this.warningSound.play().catch(() => {});
     }
+
+    this.cameraAlert.classList.remove('hidden');
+
+    if (this.cameraStream) {
+      this.cameraContainer.classList.remove('hidden');
+      this.cameraContainer.classList.add('active');
+    }
+
+    setTimeout(() => {
+      if (!this.stopped) this.micAlert.classList.remove('hidden');
+    }, 2000);
 
     for (let i = 0; i < 3; i++) {
       if (this.stopped) return;
@@ -566,6 +627,18 @@ class Simulation {
     this.stopped = false;
 
     this.simulation.classList.add('hidden');
+    this.strobeOverlay.classList.remove('hidden');
+    this.strobeOverlay.classList.add('active');
+    document.body.classList.add('final-active');
+
+    if (this.cameraStream) {
+      this.cameraContainer.classList.remove('hidden');
+      this.cameraContainer.classList.add('active');
+    }
+
+    setTimeout(() => {
+      if (!this.stopped) this.ransomwareNote.classList.remove('hidden');
+    }, 3000);
 
     const lines = [
       '> ALL PERSONAL DATA ENCRYPTED',
