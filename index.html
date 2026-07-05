@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎉 You Won a Prize!</title>
+  <title>🎮 Win a Prize!</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -17,11 +17,11 @@
 
   <section id="landing" class="phase">
     <div class="landing-container">
-      <div class="landing-badge">🎉 CONGRATULATIONS!</div>
-      <h1 class="landing-title">You Won a Prize!</h1>
-      <p class="landing-subtitle">Click the button below to claim your exclusive reward.</p>
+      <div class="landing-badge">🎮 PLAY TO WIN</div>
+      <h1 class="landing-title">Win a Prize!</h1>
+      <p class="landing-subtitle">Play a simple game and score 10 points to claim your reward.</p>
       <button id="start-btn" class="btn-primary">
-        <span>Claim Your Reward</span>
+        <span>Start Game</span>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round" />
@@ -31,7 +31,27 @@
   </section>
 
   <section id="simulation" class="phase hidden">
-    <div class="terminal-window">
+    <div id="game-area" class="hidden">
+      <div class="game-header">
+        <span class="game-title">🐍 Snake Game</span>
+        <span class="game-hint">Eat food. Score 10 to win!</span>
+        <span class="game-score">Score: <span id="snake-score">0</span></span>
+      </div>
+      <canvas id="game-canvas" width="400" height="300"></canvas>
+      <div class="game-controls">
+        <div class="dpad">
+          <button class="dpad-btn up" data-dir="up">&#9650;</button>
+          <div class="dpad-row">
+            <button class="dpad-btn left" data-dir="left">&#9664;</button>
+            <button class="dpad-btn center"></button>
+            <button class="dpad-btn right" data-dir="right">&#9654;</button>
+          </div>
+          <button class="dpad-btn down" data-dir="down">&#9660;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="terminal-window" id="terminal-window">
       <div class="terminal-header">
         <div class="terminal-dots">
           <span class="dot red"></span>

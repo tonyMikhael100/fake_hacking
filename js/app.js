@@ -93,6 +93,265 @@ class ParticleSystem {
   }
 }
 
+class SnakeGame {
+  constructor(canvasId, scoreId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.scoreEl = document.getElementById(scoreId);
+    this.grid = 15;
+    this.tileCount = Math.floor(this.canvas.width / this.grid);
+    this.winScore = 10;
+    this.reset();
+    this.running = false;
+    this.loop = null;
+  }
+
+  reset() {
+    const mid = Math.floor(this.tileCount / 2);
+    this.snake = [{ x: mid, y: mid }];
+    this.direction = { x: 0, y: 0 };
+    this.nextDirection = { x: 0, y: 0 };
+    this.food = this.spawnFood();
+    this.score = 0;
+    this.scoreEl.textContent = '0';
+    this.gameOver = false;
+    this.won = false;
+  }
+
+  setDirection(x, y) {
+    if (!this.running) return;
+    if (x === 0 && y === 0) return;
+    if (this.direction.x !== 0 && x !== 0) return;
+    if (this.direction.y !== 0 && y !== 0) return;
+    this.nextDirection = { x, y };
+  }
+
+  spawnFood() {
+    const pos = {
+      x: Math.floor(Math.random() * this.tileCount),
+      y: Math.floor(Math.random() * this.tileCount),
+    };
+    for (const s of this.snake) {
+      if (s.x === pos.x && s.y === pos.y) return this.spawnFood();
+    }
+    return pos;
+  }
+
+  start() {
+    if (this.running) return;
+    this.reset();
+    this.running = true;
+    this.setupKeys();
+    this.tick();
+  }
+
+  stop() {
+    this.running = false;
+    if (this.loop) {
+      clearTimeout(this.loop);
+      this.loop = null;
+    }
+    this.removeKeys();
+  }
+
+  setupKeys() {
+    this._keyHandler = (e) => {
+      if (!this.running) return;
+      const k = e.key;
+      if (k === 'ArrowUp' || k === 'w') this.setDirection(0, -1);
+      else if (k === 'ArrowDown' || k === 's') this.setDirection(0, 1);
+      else if (k === 'ArrowLeft' || k === 'a') this.setDirection(-1, 0);
+      else if (k === 'ArrowRight' || k === 'd') this.setDirection(1, 0);
+    };
+    document.addEventListener('keydown', this._keyHandler);
+
+    this._touchButtons = document.querySelectorAll('.dpad-btn[data-dir]');
+    this._touchHandler = (e) => {
+      const dir = e.currentTarget.getAttribute('data-dir');
+      if (dir === 'up') this.setDirection(0, -1);
+      else if (dir === 'down') this.setDirection(0, 1);
+      else if (dir === 'left') this.setDirection(-1, 0);
+      else if (dir === 'right') this.setDirection(1, 0);
+      e.preventDefault();
+    };
+    this._touchButtons.forEach((btn) => {
+      btn.addEventListener('touchstart', this._touchHandler, { passive: false });
+      btn.addEventListener('mousedown', this._touchHandler);
+    });
+
+    this._swipeHandler = (e) => {
+      if (!this.running || e.target.closest('.game-controls')) return;
+      const touch = e.touches[0];
+      if (!this._swipeStart) {
+        this._swipeStart = { x: touch.clientX, y: touch.clientY };
+        return;
+      }
+      const dx = touch.clientX - this._swipeStart.x;
+      const dy = touch.clientY - this._swipeStart.y;
+      if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+          this.setDirection(dx > 0 ? 1 : -1, 0);
+        } else {
+          this.setDirection(0, dy > 0 ? 1 : -1);
+        }
+        this._swipeStart = null;
+      }
+    };
+    this._swipeEndHandler = () => { this._swipeStart = null; };
+    this.canvas.addEventListener('touchstart', (e) => {
+      this._swipeStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    });
+    this.canvas.addEventListener('touchmove', this._swipeHandler);
+    this.canvas.addEventListener('touchend', this._swipeEndHandler);
+  }
+
+  removeKeys() {
+    if (this._keyHandler) {
+      document.removeEventListener('keydown', this._keyHandler);
+      this._keyHandler = null;
+    }
+    if (this._touchHandler && this._touchButtons) {
+      this._touchButtons.forEach((btn) => {
+        btn.removeEventListener('touchstart', this._touchHandler);
+        btn.removeEventListener('mousedown', this._touchHandler);
+      });
+      this._touchButtons = null;
+      this._touchHandler = null;
+    }
+    if (this._swipeHandler) {
+      this.canvas.removeEventListener('touchmove', this._swipeHandler);
+      this.canvas.removeEventListener('touchend', this._swipeEndHandler);
+      this._swipeHandler = null;
+      this._swipeEndHandler = null;
+    }
+  }
+
+  tick() {
+    if (!this.running) {
+      if (this.gameOver && !this.won) {
+        this.loop = setTimeout(() => {
+          this.reset();
+          this.running = true;
+          this.tick();
+        }, 800);
+      }
+      return;
+    }
+    this.update();
+    this.draw();
+    const speed = Math.max(80, 160 - this.score * 3);
+    this.loop = setTimeout(() => this.tick(), speed);
+  }
+
+  update() {
+    this.direction = { ...this.nextDirection };
+
+    if (this.direction.x === 0 && this.direction.y === 0) return;
+
+    const head = {
+      x: this.snake[0].x + this.direction.x,
+      y: this.snake[0].y + this.direction.y,
+    };
+
+    if (head.x < 0 || head.x >= this.tileCount || head.y < 0 || head.y >= this.tileCount) {
+      this.gameOver = true;
+      this.running = false;
+      return;
+    }
+
+    for (const s of this.snake) {
+      if (s.x === head.x && s.y === head.y) {
+        this.gameOver = true;
+        this.running = false;
+        return;
+      }
+    }
+
+    this.snake.unshift(head);
+
+    if (head.x === this.food.x && head.y === this.food.y) {
+      this.score++;
+      this.scoreEl.textContent = this.score;
+      if (this.score >= this.winScore) {
+        this.won = true;
+        this.running = false;
+        return;
+      }
+      this.food = this.spawnFood();
+    } else {
+      this.snake.pop();
+    }
+  }
+
+  draw() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    const gw = this.canvas.width / this.tileCount;
+    const gh = this.canvas.height / this.tileCount;
+
+    if (this.gameOver || this.won) {
+      this.ctx.fillStyle = this.won ? 'rgba(0, 255, 65, 0.03)' : 'rgba(255, 0, 60, 0.03)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    for (let i = 0; i < this.snake.length; i++) {
+      const s = this.snake[i];
+      const ratio = 1 - (i / this.snake.length) * 0.4;
+      this.ctx.fillStyle = this.won
+        ? `rgba(0, 255, 65, ${ratio})`
+        : `rgba(0, 212, 255, ${ratio})`;
+      this.ctx.shadowColor = this.won
+        ? 'rgba(0, 255, 65, 0.3)'
+        : 'rgba(0, 212, 255, 0.3)';
+      this.ctx.shadowBlur = 4;
+      this.ctx.fillRect(s.x * gw + 1, s.y * gh + 1, gw - 2, gh - 2);
+    }
+
+    this.ctx.shadowBlur = 0;
+
+    this.ctx.fillStyle = this.won ? '#00ff41' : '#00ff41';
+    this.ctx.shadowColor = 'rgba(0, 255, 65, 0.5)';
+    this.ctx.shadowBlur = 8;
+    this.ctx.beginPath();
+    this.ctx.arc(this.food.x * gw + gw / 2, this.food.y * gh + gh / 2, gw / 3, 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.shadowBlur = 0;
+
+    this.ctx.strokeStyle = 'rgba(0, 212, 255, 0.04)';
+    this.ctx.lineWidth = 0.5;
+    for (let i = 0; i <= this.tileCount; i++) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(i * gw, 0);
+      this.ctx.lineTo(i * gw, this.canvas.height);
+      this.ctx.stroke();
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, i * gh);
+      this.ctx.lineTo(this.canvas.width, i * gh);
+      this.ctx.stroke();
+    }
+
+    if (this.won) {
+      this.ctx.fillStyle = '#00ff41';
+      this.ctx.shadowColor = 'rgba(0, 255, 65, 0.8)';
+      this.ctx.shadowBlur = 20;
+      this.ctx.font = 'bold 18px monospace';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('YOU WIN!', this.canvas.width / 2, this.canvas.height / 2 - 10);
+      this.ctx.shadowBlur = 10;
+      this.ctx.font = '11px monospace';
+      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      this.ctx.shadowBlur = 0;
+      this.ctx.fillText('Score 10 reached', this.canvas.width / 2, this.canvas.height / 2 + 16);
+    } else if (this.gameOver) {
+      this.ctx.fillStyle = 'rgba(255, 0, 60, 0.6)';
+      this.ctx.shadowBlur = 0;
+      this.ctx.font = 'bold 14px monospace';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2);
+    }
+  }
+}
+
 class Simulation {
   constructor() {
     this.DEV_MODE = false;
@@ -123,6 +382,9 @@ class Simulation {
     this.strobeOverlay = document.getElementById('strobe-overlay');
     this.cameraContainer = document.getElementById('camera-container');
     this.cameraFeed = document.getElementById('camera-feed');
+    this.gameArea = document.getElementById('game-area');
+    this.simulationEl = document.getElementById('simulation');
+    this.snakeGame = new SnakeGame('game-canvas', 'snake-score');
     this.devNav = document.getElementById('dev-nav');
     this.cameraStream = null;
 
@@ -176,6 +438,9 @@ class Simulation {
       this.cameraStream.getTracks().forEach(t => t.stop());
       this.cameraStream = null;
     }
+    this.snakeGame.stop();
+    this.gameArea.classList.add('hidden');
+    this.simulationEl.classList.remove('game-mode');
     this.progressSection.classList.add('hidden');
     this.landing.classList.add('hidden');
     this.simulation.classList.add('hidden');
@@ -476,6 +741,10 @@ class Simulation {
   }
 
   async hackingPhase() {
+    this.gameArea.classList.remove('hidden');
+    this.simulationEl.classList.add('game-mode');
+    this.snakeGame.start();
+
     await this.typeLine('', 'dim');
     await this.typeLine('========================================', 'red');
     await this.typeLine('  INITIALIZING DATA EXTRACTION', 'red');
@@ -483,16 +752,16 @@ class Simulation {
     await this.sleep(200);
 
     const steps = [
-      { label: 'Scanning file system...', duration: 1000, files: true },
-      { label: 'Indexing documents...', duration: 800, files: true },
-      { label: 'Extracting saved credentials...', duration: 1200 },
-      { label: 'Accessing browser history...', duration: 700 },
-      { label: 'Downloading contact list...', duration: 900 },
-      { label: 'Analyzing network traffic...', duration: 1000 },
-      { label: 'Collecting system logs...', duration: 700 },
-      { label: 'Scanning email cache...', duration: 900 },
-      { label: 'Extracting location data...', duration: 800 },
-      { label: 'Encrypting target files...', duration: 1400 },
+      { label: 'Scanning file system...', duration: 800, files: true },
+      { label: 'Indexing documents...', duration: 600, files: true },
+      { label: 'Extracting saved credentials...', duration: 1000 },
+      { label: 'Accessing browser history...', duration: 500 },
+      { label: 'Downloading contact list...', duration: 700 },
+      { label: 'Analyzing network traffic...', duration: 800 },
+      { label: 'Collecting system logs...', duration: 500 },
+      { label: 'Scanning email cache...', duration: 700 },
+      { label: 'Extracting location data...', duration: 600 },
+      { label: 'Encrypting target files...', duration: 1200 },
     ];
 
     const fakeFiles = [
@@ -524,6 +793,10 @@ class Simulation {
     await this.sleep(150);
     await this.typeLine('[!] Encryption protocol initiated.', 'red');
     await this.sleep(300);
+
+    this.snakeGame.stop();
+    this.gameArea.classList.add('hidden');
+    this.simulationEl.classList.remove('game-mode');
   }
 
   async escalationPhase() {

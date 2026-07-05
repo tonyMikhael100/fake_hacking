@@ -194,8 +194,145 @@ html, body {
 /* ========== Simulation ========== */
 #simulation {
   flex-direction: column;
-  gap: 24px;
-  padding: 24px;
+  gap: 12px;
+  padding: 12px;
+}
+
+#simulation.game-mode {
+  gap: 8px;
+  padding: 8px;
+  justify-content: flex-end;
+}
+
+#simulation.game-mode .terminal-window {
+  max-width: 100%;
+  max-height: 35vh;
+}
+
+#simulation.game-mode .terminal-body {
+  min-height: 80px;
+  max-height: 120px;
+  font-size: 11px;
+  padding: 10px;
+}
+
+/* ========== Game Area ========== */
+#game-area {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.4s ease;
+}
+
+#game-area.hidden {
+  display: none;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #1a1a2e;
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--cyan);
+  flex-wrap: wrap;
+}
+
+.game-title {
+  font-weight: 600;
+  color: var(--cyan);
+}
+
+.game-hint {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.5px;
+}
+
+.game-score {
+  color: var(--green);
+  font-weight: 600;
+}
+
+#game-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  background: #0a0a14;
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  border-radius: 0;
+  display: block;
+  cursor: pointer;
+}
+
+/* ========== Game Controls (D-Pad) ========== */
+.game-controls {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 4px;
+}
+
+.game-controls.hidden {
+  display: none;
+}
+
+.dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.dpad-row {
+  display: flex;
+  gap: 2px;
+}
+
+.dpad-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--cyan);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  transition: all 0.1s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dpad-btn:active {
+  background: rgba(0, 212, 255, 0.25);
+  transform: scale(0.92);
+}
+
+.dpad-btn.center {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.up { margin-bottom: -2px; }
+.down { margin-top: -2px; }
+
+#simulation.game-mode .game-header {
+  font-size: 11px;
+  padding: 6px 12px;
 }
 
 .terminal-window {
