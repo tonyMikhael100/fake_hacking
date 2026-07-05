@@ -116,6 +116,7 @@ class Simulation {
     this.warningProgressBar = document.getElementById('warning-progress-bar');
     this.warningIcon = document.getElementById('warning-icon');
     this.warningFinal = document.getElementById('warning-final');
+    this.warningSound = document.getElementById('warning-sound');
     this.devNav = document.getElementById('dev-nav');
 
     this.stopped = false;
@@ -153,6 +154,10 @@ class Simulation {
     this.glitchBars.classList.remove('active');
     this.glitchBars.classList.add('hidden');
     this.warningOverlay.classList.add('hidden');
+    if (this.warningSound) {
+      this.warningSound.pause();
+      this.warningSound.currentTime = 0;
+    }
     this.progressSection.classList.add('hidden');
     this.landing.classList.add('hidden');
     this.simulation.classList.add('hidden');
@@ -478,6 +483,11 @@ class Simulation {
     this.warningOverlay.classList.remove('hidden');
     this.glitchBars.classList.remove('hidden');
     this.glitchBars.classList.add('active');
+
+    if (this.warningSound) {
+      this.warningSound.currentTime = 0;
+      this.warningSound.play().catch(() => {});
+    }
 
     for (let i = 0; i < 3; i++) {
       if (this.stopped) return;
